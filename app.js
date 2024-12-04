@@ -6,7 +6,7 @@ const cargar1 = async () => {
         ciudades.map(async (ciudad) => {
             //usuarios
             const usuarios = await solicitud(`usuarios?cityId=${ciudad.id}`);
-            return { ...ciudad, usuarios };
+            return { nombre: ciudad.name, Usuarios: usuarios };
         })
     )
     console.log(responce);
@@ -20,18 +20,24 @@ const cargar2 = async () => {
             const materias = await solicitud(`materia_usuario?userId=${user.id}`);
             const materia_usuario = await Promise.all(
                 materias.map(async (materia) => {
+                    //materias y promedios
                     const matename = await solicitud(`materias?id=${materia.subjectId}`);
-                    return {...matename} ;
+                    const nombreMate = matename[0]?.name || "nombre desconocido";
+                    const notas = await solicitud(`notas?subjectUserId=${materia.subjectId}`);
+
+                    const valoresNotas = Array.isArray(notas)
+                        ? notas.map(nota => nota.note).filter(nota => typeof nota === 'number' && !isNaN(nota)): [];
+
+                    const promedio = valoresNotas.length > 0 ? [(valoresNotas.reduce((acc, nota) => acc + nota, 0) / valoresNotas.length).toFixed(2)] : [0];
+
+                    return { nombre: nombreMate, promedio: promedio };
                 })
             );
-            return { ...user, Materias: materia_usuario };
-        })  
+            return { nombre: user.name, Materias: materia_usuario };
+        })
     )
     console.log(responce);
-    
-    
 }
-//materia_usuario?userId=${user.id}
 
 cargar1();
 cargar2()
